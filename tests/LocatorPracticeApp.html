@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locator Lab — Playwright Practice</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+  :root { color-scheme: dark; --bg:#0b1020; --panel:#121a2e; --panel2:#172139; --line:#263450; --muted:#91a0bd; --text:#edf2ff; --blue:#7aa2ff; --mint:#79e2c0; --violet:#c0a0ff; }
+  * { box-sizing:border-box }
+  body { margin:0; min-height:100vh; background:radial-gradient(ellipse at 15% -10%,#1b2e58 0,transparent 42%),radial-gradient(ellipse at 95% 25%,#242050 0,transparent 36%),var(--bg); color:var(--text); font:15px/1.6 'DM Sans',sans-serif; }
+  button,input { font:inherit }
+  .shell { width:min(1100px,calc(100% - 36px)); margin:0 auto; padding:30px 0 70px }
+  header { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:44px }
+  .brand { display:flex; gap:12px; align-items:center; font-weight:700; letter-spacing:.02em }
+  .brand-icon { display:grid; place-items:center; width:40px; height:40px; border-radius:13px; color:#10172b; background:linear-gradient(135deg,var(--mint),var(--blue)); font-size:20px; box-shadow:0 8px 28px #7aa2ff33 }
+  .top-tag { border:1px solid var(--line); color:var(--muted); border-radius:99px; padding:6px 12px; font-size:12px; letter-spacing:.08em; text-transform:uppercase }
+  .hero { max-width:760px; margin:0 0 32px }
+  .eyebrow { color:var(--mint); font:500 12px 'DM Mono',monospace; letter-spacing:.14em; text-transform:uppercase }
+  h1 { margin:9px 0 12px; font:700 clamp(36px,6vw,60px)/1.05 'Space Grotesk',sans-serif; letter-spacing:-.045em }
+  h1 span { color:var(--blue) }
+  .hero p { max-width:640px; margin:0; color:var(--muted); font-size:17px }
+  .progress { display:flex; align-items:center; gap:10px; margin-top:22px; color:var(--muted); font-size:13px }
+  .progress-line { height:5px; width:140px; background:#263450; border-radius:10px; overflow:hidden }
+  .progress-line i { display:block; width:0; height:100%; background:linear-gradient(90deg,var(--mint),var(--blue)); transition:width .3s }
+  .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px }
+  .card { position:relative; overflow:hidden; padding:21px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(145deg,#151f36ed,#11182aed); box-shadow:0 16px 50px #02061738; transition:transform .2s,border-color .2s }
+  .card:hover { transform:translateY(-2px); border-color:#405376 }
+  .card.wide { grid-column:1/-1 }
+  .card-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:15px }
+  .card-title { display:flex; align-items:center; gap:10px; font:600 19px 'Space Grotesk',sans-serif }
+  .number { display:grid; place-items:center; width:28px; height:28px; border-radius:9px; background:#223152; color:var(--blue); font:500 12px 'DM Mono',monospace }
+  .locator { padding:5px 9px; border:1px solid #314366; border-radius:7px; color:#c4d2f2; background:#111a2e; font:12px 'DM Mono',monospace }
+  .desc { margin:0 0 15px; color:var(--muted); font-size:14px }
+  .demo { padding:16px; border:1px solid #263450; border-radius:12px; background:#0d1425 }
+  .demo-label { display:block; margin-bottom:7px; color:#d9e2f6; font-size:13px; font-weight:600 }
+  .field { width:100%; padding:11px 13px; border:1px solid #354565; border-radius:9px; outline:none; color:var(--text); background:#121c31; transition:border .2s,box-shadow .2s }
+  .field:focus { border-color:var(--blue); box-shadow:0 0 0 3px #7aa2ff20 }
+  .field::placeholder { color:#7383a3 }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 15px; border:1px solid transparent; border-radius:9px; color:#0d1527; background:linear-gradient(135deg,#a2c0ff,#78a0ff); font-weight:700; cursor:pointer; transition:filter .2s,transform .2s }
+  .btn:hover { filter:brightness(1.08); transform:translateY(-1px) }
+  .btn.ghost { color:#dbe5fa; border-color:#344462; background:#18233a }
+  .btn.mint { background:linear-gradient(135deg,#a5f1d8,#70d9b5) }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+  .quote { margin:0; padding:2px 0; color:#dce6fc; font-size:16px }
+  .quote strong { color:var(--mint) }
+  .profile { display:flex; align-items:center; gap:14px }
+  .avatar { width:58px; height:58px; border-radius:18px; border:2px solid #546b9a; object-fit:cover }
+  .profile strong { display:block; font-size:16px }
+  .profile small { color:var(--muted) }
+  .status { min-height:24px; margin:10px 0 0; color:var(--mint); font-size:13px }
+  .counter { display:flex; align-items:center; gap:16px }
+  .count { min-width:48px; color:var(--mint); font:600 30px 'Space Grotesk',sans-serif }
+  .footer { display:flex; justify-content:space-between; gap:12px; margin-top:24px; color:#7483a1; font-size:12px }
+  .footer code { color:#aabbe0; font-family:'DM Mono',monospace }
+  @media(max-width:680px) { .grid{grid-template-columns:1fr}.card.wide{grid-column:auto} header{margin-bottom:34px}.top-tag{display:none} }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand"><div class="brand-icon">⌘</div><span>Locator Lab</span></div>
+    <div class="top-tag">Playwright practice playground</div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">Hands-on locator training</div>
+    <h1>Find your way<br>around the <span>DOM.</span></h1>
+    <p>Practice Playwright’s built-in locators on real, interactive elements. Inspect the page, write a locator, and try each one in your test.</p>
+    <div class="progress"><span id="progress-label">0 of 7 tried</span><div class="progress-line"><i id="progress-fill"></i></div><span>keep going →</span></div>
+  </section>
+
+  <main class="grid">
+    <section class="card" data-locator-card="text">
+      <div class="card-head"><div class="card-title"><span class="number">01</span> Find by text</div><code class="locator">getByText()</code></div>
+      <p class="desc">Locate visible copy on the page.</p>
+      <div class="demo"><p class="quote">Your next great idea starts <strong>right here.</strong></p><button class="btn ghost mark" data-mark="text" id="text-action">Try this message</button><p class="status" id="text-status"></p></div>
+    </section>
+
+    <section class="card" data-locator-card="role">
+      <div class="card-head"><div class="card-title"><span class="number">02</span> Find by role</div><code class="locator">getByRole()</code></div>
+      <p class="desc">Use an element’s semantic role and accessible name.</p>
+      <div class="demo"><div class="row"><button class="btn mark" data-mark="role" aria-label="Create a new project">＋ New project</button><button class="btn ghost mark" data-mark="role" aria-pressed="false">Follow</button></div><p class="status" id="role-status"></p></div>
+    </section>
+
+    <section class="card" data-locator-card="placeholder">
+      <div class="card-head"><div class="card-title"><span class="number">03</span> Find by placeholder</div><code class="locator">getByPlaceholder()</code></div>
+      <p class="desc">Fill an input by the hint shown inside it.</p>
+      <div class="demo"><label class="demo-label" for="search-box">Quick search</label><input class="field mark" data-mark="placeholder" id="search-box" placeholder="Search projects or people…"><p class="status" id="placeholder-status"></p></div>
+    </section>
+
+    <section class="card" data-locator-card="label">
+      <div class="card-head"><div class="card-title"><span class="number">04</span> Find by label</div><code class="locator">getByLabel()</code></div>
+      <p class="desc">Labels connect a readable name to a form control.</p>
+      <div class="demo"><label class="demo-label" for="email-field">Work email</label><input class="field mark" data-mark="label" id="email-field" type="email" placeholder="you@company.com"><p class="status" id="label-status"></p></div>
+    </section>
+
+    <section class="card" data-locator-card="testid">
+      <div class="card-head"><div class="card-title"><span class="number">05</span> Find by test ID</div><code class="locator">getByTestId()</code></div>
+      <p class="desc">Use the custom test ID attached to an element.</p>
+      <div class="demo"><div data-testid="welcome-banner" class="quote">You’re all set. <strong>Welcome aboard!</strong></div><button class="btn ghost mark" data-mark="testid" id="testid-action">Acknowledge</button><p class="status" id="testid-status"></p></div>
+    </section>
+
+    <section class="card" data-locator-card="title">
+      <div class="card-head"><div class="card-title"><span class="number">06</span> Find by title</div><code class="locator">getByTitle()</code></div>
+      <p class="desc">Target an element by its title attribute.</p>
+      <div class="demo"><div class="row"><button class="btn ghost mark" data-mark="title" title="Add this page to your favorites" id="favorite-action">☆ Save to favorites</button><span class="muted" id="favorite-note" style="color:var(--muted);font-size:13px"></span></div><p class="status" id="title-status"></p></div>
+    </section>
+
+    <section class="card wide" data-locator-card="alttext">
+      <div class="card-head"><div class="card-title"><span class="number">07</span> Find by alt text</div><code class="locator">getByAltText()</code></div>
+      <p class="desc">Images with meaningful alternative text are easier to locate and more accessible.</p>
+      <div class="demo"><div class="profile"><img class="avatar mark" data-mark="alttext" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1' y2='1'%3E%3Cstop stop-color='%2379e2c0'/%3E%3Cstop offset='1' stop-color='%237aa2ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='30' fill='url(%23g)'/%3E%3Ccircle cx='60' cy='45' r='23' fill='%23121a2e'/%3E%3Cpath d='M18 118c3-29 19-43 42-43s39 14 42 43' fill='%23121a2e'/%3E%3C/svg%3E" alt="Profile photo of Jordan Lee"><div><strong>Jordan Lee</strong><small>Product designer · San Francisco</small></div></div><p class="status" id="alttext-status"></p></div>
+    </section>
+
+    <section class="card wide">
+      <div class="card-head"><div class="card-title"><span class="number">✦</span> Bonus interaction</div><code class="locator">Practice clicking &amp; assertions</code></div>
+      <p class="desc">This counter updates when clicked. Try checking its initial value, clicking the button, then asserting the new value.</p>
+      <div class="demo"><div class="counter"><span class="count" data-testid="click-count" id="count">0</span><button class="btn mint" id="count-button">Click me</button><button class="btn ghost" id="reset-button">Reset</button><span style="color:var(--muted);font-size:13px">clicks so far</span></div></div>
+    </section>
+  </main>
+  <div class="footer"><span>Built for your local Playwright practice</span><span>Tip: use <code>getByRole()</code> when it fits.</span></div>
+</div>
+<script>
+  const tried = new Set();
+  function mark(name, message) {
+    tried.add(name);
+    document.getElementById(name + '-status').textContent = message;
+    document.getElementById('progress-label').textContent = `${tried.size} of 7 tried`;
+    document.getElementById('progress-fill').style.width = `${tried.size / 7 * 100}%`;
+  }
+  document.getElementById('text-action').addEventListener('click', () => mark('text', 'Nice! You located a text element.'));
+  document.querySelector('[aria-label="Create a new project"]').addEventListener('click', () => mark('role', 'Project created! Role locator found the button.'));
+  document.querySelector('[aria-pressed]').addEventListener('click', event => {
+    const pressed = event.currentTarget.getAttribute('aria-pressed') === 'true';
+    event.currentTarget.setAttribute('aria-pressed', String(!pressed));
+    event.currentTarget.textContent = pressed ? 'Follow' : 'Following';
+    mark('role', pressed ? 'You unfollowed this item.' : 'You are now following this item.');
+  });
+  document.getElementById('search-box').addEventListener('input', event => mark('placeholder', event.target.value ? `Searching for “${event.target.value}”…` : ''));
+  document.getElementById('email-field').addEventListener('input', event => mark('label', event.target.value ? 'Email field filled.' : ''));
+  document.getElementById('testid-action').addEventListener('click', () => mark('testid', 'Banner acknowledged.'));
+  document.getElementById('favorite-action').addEventListener('click', event => {
+    const saved = event.currentTarget.textContent.includes('Saved');
+    event.currentTarget.textContent = saved ? '☆ Save to favorites' : '★ Saved to favorites';
+    document.getElementById('favorite-note').textContent = saved ? '' : 'Added';
+    mark('title', saved ? 'Removed from favorites.' : 'Saved to favorites!');
+  });
+  document.querySelector('[alt="Profile photo of Jordan Lee"]').addEventListener('click', () => mark('alttext', 'You found Jordan’s profile photo.'));
+  let count = 0;
+  document.getElementById('count-button').addEventListener('click', () => { document.getElementById('count').textContent = ++count; });
+  document.getElementById('reset-button').addEventListener('click', () => { count = 0; document.getElementById('count').textContent = count; });
+</script>
+</body>
+</html>
